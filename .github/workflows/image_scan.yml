@@ -1,14 +1,28 @@
-name: scan of the image
+name: CI/CI pipeline for image scanning
 on:
    workflow_dispatch:
 
 jobs:
   image_scan:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: set up CodeQL
+        uses: github/codeql-action/setup@v1
+        with:
+          languages: "python"
+      - name: Initialize CodeQL database
+        run: |
+          codeql database create database
+          codeql database analyze database --all-runs --format=sarif-latest --output=codeql-database.sarif
+          
+      - name: Upload CodeQL results
+        uses: actions/upload-artifact@v2
+        with:
+          sarif_file: results.sarif
 
       - name: build image
         run: docker build -t myapp:latest .
@@ -23,4 +37,4 @@ jobs:
         uses: docker://docker.io/aquasec/trivy:0.19.2
         with:
           args: image --exit-code 0 --severity HIGH,CRITICAL --no-progress myapp:latest
-
+          
