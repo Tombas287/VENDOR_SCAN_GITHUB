@@ -20,7 +20,7 @@ jobs:
           codeql database analyze database --all-runs --format=sarif-latest --output=codeql-database.sarif
           
       - name: Upload CodeQL results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           sarif_file: results.sarif
 
