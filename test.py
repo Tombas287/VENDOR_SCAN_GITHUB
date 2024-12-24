@@ -1,8 +1,8 @@
 import os
 def extract_cred():
     cred = {}
-    docker_user = '7002370412'
-    docker_password = '7002370412'
+    docker_user = ''
+    docker_password = ''
     cred['username'] = docker_user
     cred['password'] = docker_password
 
