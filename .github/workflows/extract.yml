@@ -17,12 +17,10 @@ jobs:
 
       # Step 3: Export environment variables and Docker login
       - name: Docker login
-        run: |
-    
-          docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-          env:
-            DOCKER_USERNAME: ${{ env.DOCKER_USERNAME }}
-            DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
+        run: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+        env:
+          DOCKER_USERNAME: ${{ env.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ env.DOCKER_PASSWORD }}
 
       # Step 4: Cleanup
       - name: Delete the env file
