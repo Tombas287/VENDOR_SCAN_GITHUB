@@ -13,11 +13,15 @@ jobs:
       - name: set up CodeQL
         uses: github/codeql-action/query-filter-test@v3
         with:
-          languages: "python"
+          languages: python
       - name: Initialize CodeQL database
         run: |
-          codeql database create database
-          codeql database analyze database --all-runs --format=sarif-latest --output=codeql-database.sarif
+         codeql database create codeql-database --language=python --source-root=.
+        
+      - name: Run CodeQL analysis
+        run: |       
+          codeql database analyze codeql-database --all-runs --format=sarif-latest --output=codeql-results.sarif
+
           
       - name: Upload CodeQL results
         uses: actions/upload-artifact@v3
