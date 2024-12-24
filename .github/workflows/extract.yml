@@ -24,4 +24,4 @@ jobs:
 
       # Step 4: Cleanup
       - name: Delete the env file
-        run: rm env_variables.env
+        run: rm -f $GITHUB_ENV
