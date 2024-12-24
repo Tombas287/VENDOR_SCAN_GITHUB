@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: set up CodeQL
         uses: github/codeql-action/setup@v1
@@ -20,7 +20,7 @@ jobs:
           codeql database analyze database --all-runs --format=sarif-latest --output=codeql-database.sarif
           
       - name: Upload CodeQL results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           sarif_file: results.sarif
 
