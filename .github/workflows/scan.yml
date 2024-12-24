@@ -7,35 +7,36 @@ on:
         required: true
         default: 'myapp:latest'
         type: string
-    jobs:
-      scan_image:
-        runs-on: ubuntu-latest
-        steps:
-          - name: Checkout repository
-            uses: actions/checkout@v2
 
-          - name: Build image
-            run: |
-                docker build -t ${{ inputs.docker_image }} .
+jobs:
+  scan_image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-          - name: Install Trivy
-            run: |
-              curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.34.0/trivy_0.34.0_Linux-64bit.deb -o trivy.deb
-              sudo dpkg -i trivy.deb
-              rm trivy.deb
-          - name: Scan the image
-            uses: docker://docker.io/aquasec/trivy:0.19.2
-            with:
-              args: image --exit-code 0 --severity HIGH,CRITICAL --no-progress ${{ inputs.docker_image }}
-              
-          - name: Export Docker image to tarball
-            run: |
-                docker save ${{ inputs.docker_image_tag }} -o myapp-image.tar  # Save image as tarball
+      - name: Build image
+        run: |
+          docker build -t ${{ inputs.docker_image }} .
 
-          - name: Upload Docker image tarball as an artifact
-            if: success()  # Only upload if the scan passes
-            uses: actions/upload-artifact@v2
-            with:
-              name: myapp-docker-image
-              path: myapp-image.tar  # Upload the tarball file
-              
+      - name: Install Trivy
+        run: |
+          curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.34.0/trivy_0.34.0_Linux-64bit.deb -o trivy.deb
+          sudo dpkg -i trivy.deb
+          rm trivy.deb
+      
+      - name: Scan the image
+        uses: docker://docker.io/aquasec/trivy:0.19.2
+        with:
+          args: image --exit-code 0 --severity HIGH,CRITICAL --no-progress ${{ inputs.docker_image }}
+          
+      - name: Export Docker image to tarball
+        run: |
+          docker save ${{ inputs.docker_image }} -o myapp-image.tar  # Save image as tarball
+
+      - name: Upload Docker image tarball as an artifact
+        if: success()  # Only upload if the scan passes
+        uses: actions/upload-artifact@v3
+        with:
+          name: myapp-docker-image
+          path: myapp-image.tar  # Upload the tarball file
