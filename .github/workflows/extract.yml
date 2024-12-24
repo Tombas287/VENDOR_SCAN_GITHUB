@@ -18,7 +18,7 @@ jobs:
       # Step 3: Export environment variables and Docker login
       - name: Docker login
         run: |
-          cat env_variables.env >> $GITHUB_ENV
+          cat cred.env >> $GITHUB_ENV
           docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
       # Step 4: Cleanup
