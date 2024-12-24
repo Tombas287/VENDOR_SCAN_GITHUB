@@ -1,0 +1,23 @@
+name: Extract docker credentials
+on:
+  workflow_dispatch
+
+jobs:
+  docker_cred:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
+      - name: Fetch details
+        run: python3 test.py
+  
+      - name: Docker login
+        run: |
+          cat env_variables.env >> $GITHUB_ENV
+          docker login -u ${{ DOCKER_USERNAME }} -p ${{ DOCKER_PASSWORD }}
+  
+      - name: Delete the env file
+        run: |
+          rm env_variables.env
+
