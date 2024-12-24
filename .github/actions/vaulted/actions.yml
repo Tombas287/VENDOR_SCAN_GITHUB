@@ -1,32 +1,32 @@
-name: Docker Login with Azure Key Vault Secrets
-on:
-  workflow_dispatch
+name: 'Fetch All Secrets from Azure Key Vault'
+description: 'Fetch all secrets from Azure Key Vault and pass them as environment variables in the workflow.'
+inputs:
+  azure_tenant_id:
+    description: 'Azure Tenant ID'
+    required: true
+  azure_client_id:
+    description: 'Azure Client ID'
+    required: true
+  azure_client_secret:
+    description: 'Azure Client Secret'
+    required: true
+  key_vault_name:
+    description: 'Azure Key Vault Name (e.g., https://<keyvault-name>.vault.azure.net/)'
+    required: true
 
-jobs:
-  docker-cred:
-    runs-on: ubuntu-latest
+runs:
+  using: "composite"
+  steps:
+    - name: Install Python dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install azure-identity azure-keyvault-secrets python-dotenv
 
-    steps:
-      # Step 1: Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # Step 2: Install dependencies
-      - name: Install Python dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install azure-identity azure-keyvault-secrets python-dotenv
-
-      # Step 3: Fetch secrets from Azure Key Vault
-      - name: Fetch secrets
-        run: python3 fetch_secrets.py
-        env:
-          KEY_VAULT_URL: "https://<your-keyvault-name>.vault.azure.net/"
-          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-
-      # Step 4: Docker login using fetched environment variables
-      - name: Docker Login
-        run: |
-          docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - name: Fetch Secrets from Azure Key Vault
+      run: |
+        python3 vaulted.py
+      env:
+        AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+        AZURE_CLIENT_ID: ${{ inputs.azure_client_id }}
+        AZURE_CLIENT_SECRET: ${{ inputs.azure_client_secret }}
+        KEY_VAULT_URL: ${{ inputs.key_vault_name }}
