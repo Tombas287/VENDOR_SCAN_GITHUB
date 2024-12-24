@@ -9,24 +9,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: set up CodeQL
-        uses: github/codeql-action/analyze@v3
-        with:
-          languages: python
-      - name: Initialize CodeQL database
-        run: |
-         codeql database create codeql-database --language=python --source-root=.
         
       - name: Run CodeQL analysis
-        run: |       
-          codeql database analyze codeql-database --all-runs --format=sarif-latest --output=codeql-results.sarif
-
-          
-      - name: Upload CodeQL results
-        uses: actions/upload-artifact@v3
+        uses: github/codeql-action/analyze@v1
         with:
-          sarif_file: results.sarif
+        # Relevant options for the `analyze` action
+         output: codeql-results.sarif  # The SARIF output file location
+         upload: true  # This will automatically upload the results to GitHub
+
+      - name: Upload CodeQL results
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+         sarif_file: codeql-results.sarif         
 
       - name: build image
         run: docker build -t myapp:latest .
