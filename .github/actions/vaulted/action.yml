@@ -1,0 +1,32 @@
+name: Docker Login with Azure Key Vault Secrets
+on:
+  workflow_dispatch
+
+jobs:
+  docker-cred:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Install dependencies
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install azure-identity azure-keyvault-secrets python-dotenv
+
+      # Step 3: Fetch secrets from Azure Key Vault
+      - name: Fetch secrets
+        run: python3 fetch_secrets.py
+        env:
+          KEY_VAULT_URL: "https://<your-keyvault-name>.vault.azure.net/"
+          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+      # Step 4: Docker login using fetched environment variables
+      - name: Docker Login
+        run: |
+          docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
