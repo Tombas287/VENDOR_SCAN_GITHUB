@@ -1,14 +1,16 @@
-import json
+import os
 def extract_cred():
     cred = {}
     docker_user = '7002370412'
     docker_password = '7002370412'
     cred['username'] = docker_user
     cred['password'] = docker_password
-    with open('cred.env', 'w') as f:
+
+    github_env_path = os.getenv('GITHUB_ENV')
+    with open(github_env_path, 'a') as f:
         f.write(f"DOCKER_USERNAME={docker_user}\n")
         f.write(f"DOCKER_PASSWORD={docker_password}\n")
 
-    print("Environment variables written to cred.env")
+    print("Environment variables written to $GITHUB_ENV")
 
 extract_cred()
