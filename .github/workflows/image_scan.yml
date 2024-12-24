@@ -1,0 +1,26 @@
+name: scan of the image
+on:
+   workflow_dispatch:
+
+jobs:
+  image_scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: build image
+        run: docker build -t myapp:latest .
+
+      - name: Install Trivy
+        run: |
+          curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.34.0/trivy_0.34.0_Linux-64bit.deb -o trivy.deb
+          sudo dpkg -i trivy.deb
+          rm trivy.deb
+
+      - name: scan the image
+        uses: docker://docker.io/aquasec/trivy:0.19.2
+        with:
+          args: image --exit-code 0 --severity HIGH,CRITICAL --no-progress myapp:latest
+
