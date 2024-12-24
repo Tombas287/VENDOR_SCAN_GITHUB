@@ -18,11 +18,13 @@ runs:
   using: "composite"
   steps:
     - name: Install Python dependencies
+      shell: bash 
       run: |
         python3 -m pip install --upgrade pip
         python3 -m pip install azure-identity azure-keyvault-secrets python-dotenv
 
     - name: Fetch Secrets from Azure Key Vault
+      shell: bash
       run: |
         python3 vaulted.py
       env:
