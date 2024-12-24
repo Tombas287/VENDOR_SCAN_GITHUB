@@ -3,24 +3,12 @@ on:
    workflow_dispatch:
 
 jobs:
-  image_scan:
+  scan_image:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-        
-      - name: Run CodeQL analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-        # Relevant options for the `analyze` action
-         output: codeql-results.sarif  # The SARIF output file location
-         upload: true  # This will automatically upload the results to GitHub
-
-      - name: Upload CodeQL results
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-         sarif_file: codeql-results.sarif         
+        uses: actions/checkout@v2
 
       - name: build image
         run: docker build -t myapp:latest .
@@ -35,4 +23,25 @@ jobs:
         uses: docker://docker.io/aquasec/trivy:0.19.2
         with:
           args: image --exit-code 0 --severity HIGH,CRITICAL --no-progress myapp:latest
+
+  image_push:
+    needs: scan_image
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: docker login
+        uses: docker/login-action@v2
+        with:
+              username: ${{ secrets.DOCKER_USERNAME }}
+              password: ${{ secrets.DOCKER_PASSWORD }}
+
+
+      - name: docker tag and push
+        run: |
+            docker tag myapp:latest ${{ secrets.DOCKER_USERNAME }}/myapp:latest
+            docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
           
