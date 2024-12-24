@@ -24,13 +24,18 @@ jobs:
         uses: docker://docker.io/aquasec/trivy:0.19.2
         with:
           args: image --exit-code 0 --severity HIGH,CRITICAL --no-progress myapp:latest
+          
+      - name: Export Docker image to tarball
+        run: |
+          docker save myapp:latest -o myapp-image.tar 
+
 
       - name: Upload Docker image as an artifact
         if: success()  # Only upload if the scan passes
         uses: actions/upload-artifact@v3
         with:
           name: myapp-docker-image
-          path: myapp:latest
+          path: myapp-image.tar
 
   image_push:
     needs: scan_image  # Depends on scan_image job
@@ -46,6 +51,11 @@ jobs:
         with:
           name: myapp-docker-image
           path: ./  # Downloads the image to the current directory
+
+      - name: Load Docker image from tarball
+        run: |
+          docker load -i ./myapp-image.tar  # Load the image from the tarball
+
 
       - name: Docker login
         uses: docker/login-action@v2
