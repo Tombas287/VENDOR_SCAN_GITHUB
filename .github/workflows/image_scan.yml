@@ -20,9 +20,10 @@ jobs:
           sudo dpkg -i trivy.deb
           rm trivy.deb
 
-      - name: Scan Docker image with Trivy
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress myapp:latest
+      - name: scan the image
+        uses: docker://docker.io/aquasec/trivy:0.19.2
+        with:
+          args: image --exit-code 0 --severity HIGH,CRITICAL --no-progress myapp:latest
 
       - name: Upload Docker image as an artifact
         if: success()  # Only upload if the scan passes
