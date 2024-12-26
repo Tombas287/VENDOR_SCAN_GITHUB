@@ -24,7 +24,7 @@ jobs:
           pip install requests  
           pip install python-dotenv
           pip install termcolor
-          pip install yaml
+          pip install pyaml
           # Run the Python script
           python3 update_issue.py  
           
