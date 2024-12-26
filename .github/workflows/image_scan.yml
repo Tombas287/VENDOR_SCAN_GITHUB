@@ -103,8 +103,8 @@ jobs:
           kubectl get pods -o wide
           kubectl get svc -o wide 
 
-      - name: Sleep for 120
-        run: sleep 120
+      - name: Sleep for 5 minutes
+        run: sleep 300
 
       - name: Check Quota
         run: python3 quota.py
