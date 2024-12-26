@@ -22,7 +22,7 @@ curl -sfL https://get.k3s.io | sh -s -v ${K3S_VERSION}
 
 # Wait for K3s to start and configure kubeconfig
 echo "Waiting for K3s to start..."
-sleep 15  # Wait for K3s to fully initialize
+sleep 120  # Wait for K3s to fully initialize
 
 # Check if K3s is running
 if ! systemctl is-active --quiet k3s; then
