@@ -102,5 +102,12 @@ jobs:
         run: sleep 30
       - name: check Quota 
         run: python3 quota.py
+        
+      - name: kubectl commands
+        run: |
+         
+          kubectl get pods -o wide
+          kubectl get svc -o wide 
+
 
           
