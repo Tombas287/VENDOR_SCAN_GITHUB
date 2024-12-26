@@ -58,10 +58,7 @@ jobs:
       - name: sample check
         run: |
             helm install tommy myrelease \
-            --set image.repository=$DOCKER_USERNAME/$docker_image \
-            sleep 30
-            kubectl get nodes
-            kubectl get pods 
+            --set image.repository=$DOCKER_USERNAME/$docker_image \     
             
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -92,6 +89,7 @@ jobs:
 
       - name: kubectl commands
         run: |
+          kubectl get nodes 
           kubectl get pods -o wide
           kubectl get svc -o wide 
 
