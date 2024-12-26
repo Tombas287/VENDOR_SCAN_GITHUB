@@ -16,7 +16,7 @@ jobs:
           ./script.sh 
 
       - name: sample check
-        run: sleep 150
+        run: sleep 120
 
       - name: Install dependencies
         run: |
