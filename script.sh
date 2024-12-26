@@ -8,7 +8,7 @@ echo "Starting K3s, kubectl, and Helm setup..."
 # Step 1: Install K3s (without systemd)
 echo "Installing K3s..."
 curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
-sleep 120
+sleep 30
 # Wait for K3s to start
 echo "Waiting for K3s to be ready..."
 sudo k3s kubectl get nodes
