@@ -1,50 +1,50 @@
 #!/bin/bash
 
-# Set variables for versioning
-HELM_VERSION="v3.12.0"
-K3S_VERSION="v1.27.1+k3s1"
-KUBECTL_VERSION="v1.27.3"
+# Exit on error
+set -e
 
-# Install dependencies
-echo "Installing required dependencies..."
-sudo apt-get update && sudo apt-get install -y curl wget apt-transport-https gnupg2
+echo "Starting K3s, kubectl, and Helm setup..."
 
-# Install Helm
-echo "Installing Helm..."
-curl https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz -o helm.tar.gz
-tar -zxvf helm.tar.gz
-sudo mv linux-amd64/helm /usr/local/bin/helm
-rm -rf linux-amd64 helm.tar.gz
-
-# Install K3s
+# Step 1: Install K3s (without systemd)
 echo "Installing K3s..."
-curl -sfL https://get.k3s.io | sh -s -v ${K3S_VERSION}
+curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
+sleep 120
+# Wait for K3s to start
+echo "Waiting for K3s to be ready..."
+sudo k3s kubectl get nodes
 
-# Wait for K3s to start and configure kubeconfig
-echo "Waiting for K3s to start..."
-sleep 120  # Wait for K3s to fully initialize
+# Step 2: Install kubectl
+echo "Installing kubectl..."
+curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.27.3/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+sudo mv ./kubectl /usr/local/bin/kubectl
 
-# Check if K3s is running
-if ! systemctl is-active --quiet k3s; then
-  echo "K3s is not running! Please check the system logs."
-  exit 1
-fi
+# Step 3: Set up kubeconfig for kubectl
+echo "Setting up kubeconfig for kubectl..."
+mkdir -p ~/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $(id -u):$(id -g) ~/.kube/config
 
-# Set up kubectl
-echo "Setting up kubectl..."
-curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
-chmod +x kubectl
-sudo mv kubectl /usr/local/bin/  # Ensure kubectl is in the system PATH
-
-# Set the kubeconfig
-sudo cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
-sudo chown ubuntu:ubuntu /home/ubuntu/.kube/config
-
-# Verify installations
-echo "Verifying kubectl and Helm installation..."
-helm version
+# Step 4: Verify kubectl installation
+echo "Verifying kubectl installation..."
 kubectl version --client
-kubectl cluster-info
 
-# Check K3s status and nodes
-kubectl get nodes
+# Step 5: Install Helm
+echo "Installing Helm..."
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+# Step 6: Verify Helm installation
+echo "Verifying Helm installation..."
+helm version
+
+# Step 7: Deploy a sample chart using Helm (nginx-ingress as an example)
+echo "Deploying nginx-ingress using Helm..."
+helm repo add stable https://charts.helm.sh/stable
+helm repo update
+helm install my-release stable/nginx-ingress
+
+# Step 8: Verify the deployment using kubectl
+echo "Verifying the deployment..."
+kubectl get pods --all-namespaces
+
+echo "K3s, kubectl, and Helm setup completed successfully!"
