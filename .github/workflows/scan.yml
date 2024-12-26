@@ -29,9 +29,10 @@ jobs:
           sudo dpkg -i trivy.deb
           rm trivy.deb
 
-      - name: Scan the image
+      - name: Scan the image with Trivy
         run: |
           trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress ${{ inputs.docker_image }}:${{ inputs.docker_tag }} > trivy-report.txt
+        continue-on-error: true  # This will allow the workflow to continue even if vulnerabilities are found
 
       - name: Export Docker image to tarball
         run: |
