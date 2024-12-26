@@ -39,9 +39,7 @@ helm version
 
 # Step 7: Deploy a sample chart using Helm (nginx-ingress as an example)
 echo "Deploying nginx-ingress using Helm..."
-helm repo add stable https://charts.helm.sh/stable
-helm repo update
-helm install my-release stable/nginx-ingress
+helm install tommy myrelease 
 
 # Step 8: Verify the deployment using kubectl
 echo "Verifying the deployment..."
