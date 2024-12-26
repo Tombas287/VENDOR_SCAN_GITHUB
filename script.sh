@@ -38,11 +38,3 @@ echo "Verifying Helm installation..."
 helm version
 
 # Step 7: Deploy a sample chart using Helm (nginx-ingress as an example)
-echo "Deploying nginx-ingress using Helm..."
-helm  install tommy myrelease --set controller.image.repository=${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }} 
-            
-# Step 8: Verify the deployment using kubectl
-echo "Verifying the deployment..."
-kubectl get pods --all-namespaces
-
-echo "K3s, kubectl, and Helm setup completed successfully!"
