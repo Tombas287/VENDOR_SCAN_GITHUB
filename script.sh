@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit on error
-set -e
+# set -e
 
 echo "Starting K3s, kubectl, and Helm setup..."
 
