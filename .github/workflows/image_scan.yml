@@ -59,7 +59,8 @@ jobs:
 
           # Correct Helm install command
           helm install tommy myrelease \
-            --set image.repository="${DOCKER_USERNAME}/myapp2:latest" \
+            --set image.repository="${DOCKER_USERNAME}/myapp2" \
+            --set image.tag=latest
             
           # Check the Kubernetes nodes and pods
           kubectl get nodes
