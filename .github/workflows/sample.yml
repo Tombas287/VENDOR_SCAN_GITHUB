@@ -13,6 +13,8 @@ jobs:
       - name: Install scripts 
         run: |
           chmod +x script.sh 
+          export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+          export DOCKER_IMAGE=${{ inputs.docker_image }}
           ./script.sh 
 
       # - name: sample check
