@@ -29,10 +29,19 @@ jobs:
           sudo dpkg -i trivy.deb
           rm trivy.deb
 
-      - name: Scan the image with Trivy
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress ${{ inputs.docker_image }}:${{ inputs.docker_tag }} > trivy-report.txt
-        continue-on-error: true  # This will allow the workflow to continue even if vulnerabilities are found
+      - name: Set up Trivy
+        uses: aquasecurity/trivy-action@v0.3.0
+        with:
+          image: ${{ inputs.docker_image }}:${{ inputs.docker_tag }}
+          severity: HIGH,CRITICAL # Fail the build if vulnerabilities of these severities are found
+          format: table
+          exit-code: 0  # Fail the build if vulnerabilities are found
+
+      - name: Upload Trivy report as an artifact
+        uses: actions/upload-artifact@v3
+        with:
+            name: trivy-report
+            path: trivy-report.json
 
       - name: Export Docker image to tarball
         run: |
@@ -45,8 +54,3 @@ jobs:
           name: ${{ inputs.docker_image }}-${{ inputs.docker_tag }}-image
           path: ${{ inputs.docker_image }}-${{ inputs.docker_tag }}.tar
 
-      - name: Upload Trivy report as an artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: trivy-report
-          path: trivy-report.txt
