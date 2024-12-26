@@ -53,10 +53,20 @@ jobs:
           chmod +x script.sh      
           ./script.sh 
 
-      - name: sample check
+      - name: Run Helm install with dynamic image repository
         run: |
-            helm install tommy myrelease \
-            --set image.repository="${DOCKER_USERNAME}/${docker_image}"              
+          echo "Running Helm install with dynamic image repository"
+
+          # Correct Helm install command
+          helm install tommy myrelease \
+            --set image.repository="${DOCKER_USERNAME}/${docker_image}" \
+            
+          # Check the Kubernetes nodes and pods
+          kubectl get nodes
+          kubectl get pods
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          docker_image: ${{ inputs.docker_image }}             
 
       - name: Install dependencies
         run: |
