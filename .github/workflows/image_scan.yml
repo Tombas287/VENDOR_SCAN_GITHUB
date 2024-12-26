@@ -7,6 +7,11 @@ on:
         required: true
         default: 'myapp:latest'
         type: string
+      docker_tag:
+        description: 'Docker image tag'
+        required: true
+        default: 'latest'
+        type: string
 
 jobs:
   # Reusable workflow for scanning
@@ -14,6 +19,7 @@ jobs:
     uses: ./.github/workflows/scan.yml  # Call the reusable scan.yml workflow
     with:
       docker_image: ${{ inputs.docker_image }}
+      docker_tag: ${{ inputs.docker_tag }}
 
   # Job for pushing image after scan
   image_push:
@@ -28,12 +34,12 @@ jobs:
       - name: Download Docker image tarball from artifacts
         uses: actions/download-artifact@v3
         with:
-          name: myapp-docker-image  # Artifact name should match the one uploaded in scan.yml
-          path: ./  # Path to download the tarball to
+          name: ${{ inputs.docker_image }}-${{ inputs.docker_tag }}-image  # Match the artifact name from scan.yml
+          path: ./  # Path to download the tarball to (directory, not file name)
 
       - name: Load Docker image from tarball
         run: |
-          docker load -i ./myapp-image.tar  # Load the Docker image from the tarball
+          docker load -i ./${{ inputs.docker_image }}-${{ inputs.docker_tag }}.tar  # Load the Docker image from the tarball
 
       - name: Docker login
         uses: docker/login-action@v2
@@ -43,12 +49,10 @@ jobs:
 
       - name: Tag and push Docker image
         run: |
-          docker tag ${{ inputs.docker_image }} ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}  
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}
+          docker tag ${{ inputs.docker_image }}:${{ inputs.docker_tag }} ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
 
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Install scripts 
+      - name: Install scripts
         run: |
           chmod +x script.sh      
           ./script.sh 
@@ -56,18 +60,19 @@ jobs:
       - name: Run Helm install with dynamic image repository
         run: |
           echo "Running Helm install with dynamic image repository"
-
-          # Correct Helm install command
+          
+          # Corrected Helm install command with dynamic variables
           helm install tommy myrelease \
-            --set image.repository="${DOCKER_USERNAME}/myapp2" \
-            --set image.tag=latest
+            --set image.repository="${DOCKER_USERNAME}/${{ inputs.docker_image }}" \
+            --set image.tag="${{ inputs.docker_tag }}"
             
           # Check the Kubernetes nodes and pods
           kubectl get nodes
           kubectl get pods
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-              
+          DOCKER_IMAGE: ${{ inputs.docker_image }}
+          DOCKER_TAG: ${{ inputs.docker_tag }}
 
       - name: Install dependencies
         run: |
@@ -78,18 +83,18 @@ jobs:
           pip install pyaml
           # Run the Python script
           python3 update_issue.py  
-          
+
         env:
           GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO_OWNER: ${{ github.repository_owner }}      
-          REPO_NAME: ${{ github.event.repository.name  }}  
-          
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+
       - name: Check if the issue was updated
         run: |
-          # Check the issue state or body update, you can add more tests here
+          # Check the issue state or body update
           curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/issues/6 \
+            https://api.github.com/repos/${{ github.repository }}/issues/9 \
             | jq '.body'  # Get the updated body of issue #6 to verify changes
 
       - name: kubectl commands
@@ -98,16 +103,13 @@ jobs:
           kubectl get pods -o wide
           kubectl get svc -o wide 
 
-      - name: Sleep for 120 
+      - name: Sleep for 120
         run: sleep 30
-      - name: check Quota 
+
+      - name: Check Quota
         run: python3 quota.py
-        
-      - name: kubectl commands
+
+      - name: Final kubectl commands
         run: |
-         
           kubectl get pods -o wide
-          kubectl get svc -o wide 
-
-
-          
+          kubectl get svc -o wide

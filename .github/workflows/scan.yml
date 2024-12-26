@@ -5,9 +5,13 @@ on:
       docker_image:
         description: 'Docker image to scan'
         required: true
-        default: 'myapp:latest'
+        default: 'myapp'
         type: string
-
+      docker_tag:
+        description: 'Docker image tag'
+        required: true
+        default: 'latest'
+        type: string
 jobs:
   scan_image:
     runs-on: ubuntu-latest
@@ -17,26 +21,31 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t ${{ inputs.docker_image }} .
+          docker build -t ${{ inputs.docker_image }}:${{ inputs.docker_tag }} .
 
       - name: Install Trivy
         run: |
           curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.34.0/trivy_0.34.0_Linux-64bit.deb -o trivy.deb
           sudo dpkg -i trivy.deb
           rm trivy.deb
-      
+
       - name: Scan the image
-        uses: docker://docker.io/aquasec/trivy:0.19.2
-        with:
-          args: image --exit-code 0 --severity HIGH,CRITICAL --no-progress ${{ inputs.docker_image }}
-          
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress ${{ inputs.docker_image }}:${{ inputs.docker_tag }} > trivy-report.txt
+
       - name: Export Docker image to tarball
         run: |
-          docker save ${{ inputs.docker_image }} -o myapp-image.tar  # Save image as tarball
+          docker save ${{ inputs.docker_image }}:${{ inputs.docker_tag }} -o ${{ inputs.docker_image }}-${{ inputs.docker_tag }}.tar
 
       - name: Upload Docker image tarball as an artifact
         if: success()  # Only upload if the scan passes
         uses: actions/upload-artifact@v3
         with:
-          name: myapp-docker-image
-          path: myapp-image.tar  # Upload the tarball file
+          name: ${{ inputs.docker_image }}-${{ inputs.docker_tag }}-image
+          path: ${{ inputs.docker_image }}-${{ inputs.docker_tag }}.tar
+
+      - name: Upload Trivy report as an artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy-report
+          path: trivy-report.txt
