@@ -55,8 +55,17 @@ jobs:
           chmod +x script.sh      
           ./script.sh 
 
-      # - name: sample check
-      #   run: sleep 15
+      - name: sample check
+        run: |
+            helm install tommy myrelease \
+            --set image.repository=$DOCKER_USERNAME/$docker_image \
+            sleep 30
+            kubectl get nodes
+            kubectl get pods 
+            
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          docker_image: ${{ inputs.docker_image }} 
 
       - name: Install dependencies
         run: |
