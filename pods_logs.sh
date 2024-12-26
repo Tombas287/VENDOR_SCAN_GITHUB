@@ -13,7 +13,6 @@ fi
 kubectl describe pod "$pod_name"
 
 # Get pod events
-kubectl describe events --namespace=$(kubectl config current-context | cut -d '/' -f 1) | grep "$pod_name"
-
+kubectl get events 
 # Get pod logs
 kubectl logs "$pod_name"
