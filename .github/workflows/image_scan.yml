@@ -113,3 +113,7 @@ jobs:
         run: |
           kubectl get pods -o wide
           kubectl get svc -o wide
+      - name: Pod logs 
+        run: |
+          chmod +x pods_logs.sh 
+          ./pods_logs.sh
