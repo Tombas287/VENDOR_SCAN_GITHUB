@@ -15,8 +15,8 @@ jobs:
           chmod +x script.sh 
           ./script.sh 
 
-      - name: sample check
-        run: sleep 15
+      # - name: sample check
+      #   run: sleep 15
 
       - name: Install dependencies
         run: |
@@ -24,7 +24,6 @@ jobs:
           pip install requests  
           pip install python-dotenv
           pip install termcolor
-          pip install subprocess
           # Run the Python script
           python3 update_issue.py  
           
