@@ -10,15 +10,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Install scripts 
+        run: |
+          chmod +x script.sh 
+          ./script.sh 
 
       - name: sample check
-        run: sleep 15
+        run: sleep 150
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests  
           pip install python-dotenv
+          pip install termcolor
           # Run the Python script
           python3 update_issue.py  
           
@@ -34,3 +39,8 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/issues/6 \
             | jq '.body'  # Get the updated body of issue #6 to verify changes
+
+      - name: kubectl commands
+        run: |
+          kubectl get pods -o wide
+          kubectl get svc -o wide 
