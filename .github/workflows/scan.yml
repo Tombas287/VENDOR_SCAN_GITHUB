@@ -30,7 +30,7 @@ jobs:
           rm trivy.deb
 
       - name: Set up Trivy
-        uses: aquasecurity/trivy-action@v0.5.0
+        uses: aquasecurity/trivy-action@v0.0.10
         with:
           image: ${{ inputs.docker_image }}:${{ inputs.docker_tag }}
           severity: HIGH,CRITICAL # Fail the build if vulnerabilities of these severities are found
