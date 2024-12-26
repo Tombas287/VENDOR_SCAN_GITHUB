@@ -5,8 +5,8 @@ import os
 from dotenv import load_dotenv
 from termcolor import colored
 load_dotenv()
-repo_owner = 'maxwell134'
-repo_name = 'CI-CD'
+repo_owner = os.getenv('REPO_OWNER')
+repo_name = os.getenv('REPO_NAME')
 GIT_TOKEN = os.getenv("GIT_TOKEN")
 
 def create_issue(repo_owner, repo_name):
