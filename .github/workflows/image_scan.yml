@@ -50,9 +50,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Install scripts 
         run: |
-          chmod +x script.sh 
           export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
           export DOCKER_IMAGE=${{ inputs.docker_image }}
+          chmod +x script.sh      
           ./script.sh 
 
       # - name: sample check
