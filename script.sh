@@ -5,67 +5,46 @@ HELM_VERSION="v3.12.0"
 K3S_VERSION="v1.27.1+k3s1"
 KUBECTL_VERSION="v1.27.3"
 
-# Update system and install required dependencies
-echo "Updating system and installing dependencies..."
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y curl wget apt-transport-https gnupg2 lsb-release
+# Install dependencies
+echo "Installing required dependencies..."
+sudo apt-get update && sudo apt-get install -y curl wget apt-transport-https gnupg2
 
-# 1. Install Helm
+# Install Helm
 echo "Installing Helm..."
 curl https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz -o helm.tar.gz
 tar -zxvf helm.tar.gz
 sudo mv linux-amd64/helm /usr/local/bin/helm
 rm -rf linux-amd64 helm.tar.gz
 
-# 2. Install K3s (Lightweight Kubernetes)
+# Install K3s
 echo "Installing K3s..."
 curl -sfL https://get.k3s.io | sh -s -v ${K3S_VERSION}
 
-# Set KUBEVERSION environment variable to access K3s kubeconfig
-export KUBEVERSION=$(sudo cat /etc/rancher/k3s/k3s.yaml | tail -n +2 | sed 's/127.0.0.1/localhost/g')
+# Wait for K3s to start and configure kubeconfig
+echo "Waiting for K3s to start..."
+sleep 15  # Wait for K3s to fully initialize
 
-# Export KUBEVERSION to access kubectl
-export KUBEVERSION_PATH=/etc/rancher/k3s/k3s.yaml
-mkdir -p ~/.kube
-sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+# Check if K3s is running
+if ! systemctl is-active --quiet k3s; then
+  echo "K3s is not running! Please check the system logs."
+  exit 1
+fi
 
-# Install kubectl
-echo "Installing kubectl..."
+# Set up kubectl
+echo "Setting up kubectl..."
 curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 chmod +x kubectl
-sudo mv kubectl /usr/local/bin/
+sudo mv kubectl /usr/local/bin/  # Ensure kubectl is in the system PATH
 
-# 3. Test Kubernetes and kubectl
-echo "Verifying kubectl installation..."
+# Set the kubeconfig
+sudo cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
+sudo chown ubuntu:ubuntu /home/ubuntu/.kube/config
+
+# Verify installations
+echo "Verifying kubectl and Helm installation..."
+helm version
 kubectl version --client
+kubectl cluster-info
 
-# 4. Install ResourceQuota and Helm Chart Example
-echo "Creating a Helm chart with ResourceQuota..."
-
-# Create a basic Helm chart to install ResourceQuota
-helm create my-release
-
-# Create ResourceQuota file inside templates folder
-cat <<EOF > my-release/templates/resourcequota.yaml
-apiVersion: v1
-kind: ResourceQuota
-metadata:
-  name: resource-quota
-  namespace: default
-spec:
-  hard:
-    requests.cpu: "4"
-    requests.memory: "8Gi"
-    limits.cpu: "6"
-    limits.memory: "12Gi"
-    pods: "10"
-    services: "5"
-EOF
-
-# Install Helm chart with ResourceQuota
-cd my-release
-helm install my-resource-quota .
-
-# 5. Verify ResourceQuota
-echo "Checking if ResourceQuota is applied correctly..."
-kubectl get resourcequota -o yaml
+# Check K3s status and nodes
+kubectl get nodes
