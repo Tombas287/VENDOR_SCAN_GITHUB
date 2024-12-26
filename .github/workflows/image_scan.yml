@@ -5,7 +5,7 @@ on:
       docker_image:
         description: 'Docker image to scan'
         required: true
-        default: 'myapp:latest'
+        default: 'myapp'
         type: string
       docker_tag:
         description: 'Docker image tag'
