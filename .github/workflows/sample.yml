@@ -24,6 +24,7 @@ jobs:
           pip install requests  
           pip install python-dotenv
           pip install termcolor
+          pip install yaml
           # Run the Python script
           python3 update_issue.py  
           
@@ -46,4 +47,6 @@ jobs:
           kubectl get svc -o wide 
 
       - name: Sleep for 120 
-        run: sleep 150
+        run: sleep 30
+      - name: check Quota 
+        run: python3 quota.py
