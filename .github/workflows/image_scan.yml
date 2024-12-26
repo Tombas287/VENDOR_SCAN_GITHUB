@@ -1,6 +1,16 @@
 name: CI/CD pipeline for image scanning
 on:
   workflow_dispatch:
+
+    permissions:
+      contents: read
+      issues: write
+      metadata: read
+      pull_requests: write
+      workflows: write
+      actions: write
+      secrets: write
+
     inputs:
       docker_image:
         description: 'Docker image to scan'
@@ -13,8 +23,10 @@ on:
         default: 'latest'
         type: string
 
+
 jobs:
   # Reusable workflow for scanning
+
   scan_image:
     uses: ./.github/workflows/scan.yml  # Call the reusable scan.yml workflow
     with:
