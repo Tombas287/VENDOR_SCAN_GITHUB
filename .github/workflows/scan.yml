@@ -29,13 +29,9 @@ jobs:
           sudo dpkg -i trivy.deb
           rm trivy.deb
 
-      - name: Set up Trivy
-        uses: aquasecurity/trivy-action@v0.0.10
-        with:
-          image: ${{ inputs.docker_image }}:${{ inputs.docker_tag }}
-          severity: HIGH,CRITICAL # Fail the build if vulnerabilities of these severities are found
-          format: table
-          exit-code: 0  # Fail the build if vulnerabilities are found
+      - name: Scan Docker image with Trivy
+        run: |
+          trivy image --exit-code 0 --no-progress ${{ inputs.docker_image }}:${{ inputs.docker_tag }} > trivy-report.json
 
       - name: Upload Trivy report as an artifact
         uses: actions/upload-artifact@v3
