@@ -161,6 +161,8 @@ def main():
             close_issue(issue_number)
     else:
         print("No valid task found to perform.")
+        issue_number = issue_to_update['number']
+        close_issue(issue_number)
 
 
 # Run the script
