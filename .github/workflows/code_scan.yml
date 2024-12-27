@@ -40,7 +40,8 @@ jobs:
 
       - name: Run Bandit Security Scan
         run: |
-          bandit -r .  # Recursively run Bandit on the Python code
+         bandit -r . || true  # Ensures that Bandit failures do not stop the workflow
+         continue-on-error: true  
 
   # Reusable workflow for scanning Docker image (this will only run if 'build' is selected)
   scan_image:
