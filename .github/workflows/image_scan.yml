@@ -2,7 +2,6 @@ name: CI/CD pipeline for image scanning
 on:
   workflow_dispatch:
 
-
     inputs:
       docker_image:
         description: 'Docker image to scan'
@@ -14,7 +13,17 @@ on:
         required: true
         default: 'latest'
         type: string
+      run_build:
+        description: 'Run build stage?'
+        required: false
+        default: 'true'
+        type: boolean
 
+      run_deploy:
+        description: 'Run deploy stage?'
+        required: false
+        default: 'true'
+        type: boolean
 
 jobs:
   # Reusable workflow for scanning
@@ -28,6 +37,7 @@ jobs:
       secrets: write
 
   scan_image:
+    if: ${{ github.event.inputs.run_build == 'true' }}  # Only run this job if run_build is true
     uses: ./.github/workflows/scan.yml  # Call the reusable scan.yml workflow
     with:
       docker_image: ${{ inputs.docker_image }}
@@ -65,6 +75,7 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
 
       - name: Install scripts
+        if: ${{ github.event.inputs.run_deploy == 'true' }}  # Only run this step if run_deploy is true
         run: |
           chmod +x script.sh      
           ./script.sh 
