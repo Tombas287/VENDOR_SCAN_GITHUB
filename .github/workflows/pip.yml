@@ -33,7 +33,7 @@ jobs:
 
       # Step 3: Test Step (Runs if either "build" or "test" is selected)
       - name: Test Project
-        if: ${{ github.event.inputs.action == 'test' }}
+        if: ${{ github.event.inputs.action == 'build' || github.event.inputs.action == 'test' }}
         run: |
           echo "Running tests..."
           # Simulate testing process
@@ -42,7 +42,7 @@ jobs:
 
       # Step 4: Deploy Step (Runs if either "build" or "deploy" is selected)
       - name: Deploy Project
-        if: ${{ github.event.inputs.action == 'deploy' }}
+        if: ${{ github.event.inputs.action == 'deploy' || github.event.inputs.action == 'build' }}
         run: |
           echo "Deploying the project..."
           # Simulate deploy process
