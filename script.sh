@@ -2,7 +2,6 @@
 
 # Exit on error
 # set -e
-
 echo "Starting K3s, kubectl, and Helm setup..."
 
 # Step 1: Install K3s (without systemd)

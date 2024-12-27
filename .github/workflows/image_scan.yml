@@ -123,11 +123,13 @@ jobs:
 
       - name: Check if the issue was updated
         run: |
-          # Check the issue state or body update
+          # Fetch the latest issue from the repository (sorted by creation date)
           curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/issues/9 \
-            | jq '.body'  # Get the updated body of issue #9 to verify changes
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/${{ github.repository }}/issues?sort=created&direction=desc" \
+           | jq '.[0].body'  # Get the body of the most recent issue
+      
+      
 
       - name: kubectl commands
         run: |
