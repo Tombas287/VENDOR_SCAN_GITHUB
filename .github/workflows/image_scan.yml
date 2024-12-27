@@ -20,25 +20,25 @@ on:
         type: choice
         options:
           - build
-          - deploy      
+          - deploy
 
 jobs:
-  # Reusable workflow for scanning
+  # Reusable workflow for scanning (this will only run if 'build' is selected)
   scan_image:
-    if: ${{ github.event.inputs.Multiple_choices == 'build' and github.event.inputs.Multiple_choices == 'build' }}  # Only run this job if the choice is 'build'
+    if: ${{ github.event.inputs.Multiple_choices == 'build' }}  # Only run this job if 'build' is selected
     uses: ./.github/workflows/scan.yml  # Call the reusable scan.yml workflow
     with:
       docker_image: ${{ inputs.docker_image }}
       docker_tag: ${{ inputs.docker_tag }}
 
-  # Job for pushing image after scan
+  # Job for pushing image after scan (this will only run if 'build' is selected)
   image_push:
     permissions:
       contents: read
       issues: write
     needs: scan_image  # This job depends on scan_image
     runs-on: ubuntu-latest
-    if: success()  # Only run this job if scan_image is successful
+    if: success() && ${{ github.event.inputs.Multiple_choices == 'build' }}  # Only run this job if 'build' is selected
 
     steps:
       - name: Checkout repository
@@ -65,9 +65,9 @@ jobs:
           docker tag ${{ inputs.docker_image }}:${{ inputs.docker_tag }} ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
 
-  # Job for deploying to AKS
+  # Job for deploying to AKS (this will only run if 'deploy' is selected)
   aks_deploy:
-    if: ${{ github.event.inputs.Multiple_choices == 'deploy'  }}  # Only run this job if the choice is 'deploy'
+    if: ${{ github.event.inputs.Multiple_choices == 'deploy' }}  # Only run this job if 'deploy' is selected
     runs-on: ubuntu-latest
 
     steps:
@@ -78,7 +78,7 @@ jobs:
         run: |
           chmod +x script.sh      
           ./script.sh 
-          
+
       - name: Run Helm install with dynamic image repository
         run: |
           echo "Running Helm install with dynamic image repository"
@@ -128,8 +128,6 @@ jobs:
           -H "Accept: application/vnd.github.v3+json" \
           "https://api.github.com/repos/${{ github.repository }}/issues?sort=created&direction=desc" \
            | jq '.[0].body'  # Get the body of the most recent issue
-      
-      
 
       - name: kubectl commands
         run: |
