@@ -67,7 +67,7 @@ jobs:
 
   # Job for deploying to AKS
   aks_deploy:
-    if: ${{ github.event.inputs.Multiple_choices == 'deploy' }}  # Only run this job if the choice is 'deploy'
+    if: ${{ github.event.inputs.Multiple_choices == 'deploy' || github.event.inputs.Multiple_choices == 'build'  }}  # Only run this job if the choice is 'deploy'
     runs-on: ubuntu-latest
 
     steps:
