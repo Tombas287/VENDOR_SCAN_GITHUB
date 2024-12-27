@@ -65,11 +65,11 @@ jobs:
           docker tag ${{ inputs.docker_image }}:${{ inputs.docker_tag }} ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
 
-  # Job for deploying to AKS (this will run after image_push job if 'build' is selected)
+  # Job for deploying to AKS (this will run after image_push job if 'build' is selected, or run standalone if 'deploy' is selected)
   aks_deploy:
     runs-on: ubuntu-latest
     needs: image_push  # Ensure it runs only after image_push if 'build' is selected
-    if: ${{ github.event.inputs.Multiple_choices == 'deploy' || github.event.inputs.Multiple_choices == 'build' }}  # Runs for both 'build' and 'deploy'
+    if: ${{ github.event.inputs.Multiple_choices == 'deploy' || (github.event.inputs.Multiple_choices == 'build' && success()) }}  # Runs for both 'build' (after image_push) and 'deploy' standalone
 
     steps:
       - name: Checkout repository
