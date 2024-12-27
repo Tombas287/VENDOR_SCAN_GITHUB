@@ -25,15 +25,6 @@ on:
         type: boolean
 
 jobs:
-  permissions:
-    contents: read
-    issues: write
-    metadata: read
-    pull_requests: write
-    workflows: write
-    actions: write
-    secrets: inherit
-
   # Reusable workflow for scanning
   scan_image:
     if: ${{ github.event.inputs.run_build == 'true' }}  # Only run this job if run_build is true
@@ -44,11 +35,13 @@ jobs:
 
   # Job for pushing image after scan
   image_push:
+    permissions:
+      contents: read
+      issues: write
+
     needs: scan_image  # This job depends on scan_image
     runs-on: ubuntu-latest
     if: success()  # Only run this job if scan_image is successful
-
-    secrets: inherit  # Inherit secrets from previous jobs
 
     steps:
       - name: Checkout repository
@@ -118,7 +111,6 @@ jobs:
       - name: Install dependencies
         run: |
           python3 update_issue.py  
-
         env:
           GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_OWNER: ${{ github.repository_owner }}
@@ -152,4 +144,4 @@ jobs:
       - name: Pod logs
         run: |
           chmod +x pods_logs.sh 
-          ./pods_logs.sh 
+          ./pods_logs.sh
