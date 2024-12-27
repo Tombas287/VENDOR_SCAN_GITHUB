@@ -155,16 +155,13 @@ def main():
         deployment = deployments[0]  # Select the first deployment
         execute_task(task_name, deployment)
 
-        # If an issue was fetched, close it after completing the task
-        if issue_to_update:
-            issue_number = issue_to_update['number']  # Get the issue number
-            close_issue(issue_number)
     else:
         print("No valid task found to perform.")
         # Only attempt to close the issue if one was fetched
-        if issue_to_update:
-            issue_number = issue_to_update['number']
-            close_issue(issue_number)
+
+    if issue_to_update:
+        issue_number = issue_to_update['number']
+        close_issue(issue_number)
 
 
 # Run the script
