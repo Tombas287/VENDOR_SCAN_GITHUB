@@ -38,8 +38,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-      secrets: inherit  # Inherit secrets from repository
-
+      
     needs: scan_image  # This job depends on scan_image
     runs-on: ubuntu-latest
     if: success()  # Only run this job if scan_image is successful
