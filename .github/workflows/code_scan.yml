@@ -32,24 +32,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Set up CodeQL
-        uses: github/codeql-action/setup-codeql@v2
-        with:
-          languages: python  # or 'javascript', 'java', etc., depending on your codebase
-
-      - name: Initialize CodeQL database
+        
+      - name: Install dependencies
         run: |
-          codeql database create codeql-db --language=python  # or 'javascript', etc.
+          python -m pip install --upgrade pip
+          pip install bandit  # Install Bandit
 
-      - name: Analyze the codebase with CodeQL
+      - name: Run Bandit Security Scan
         run: |
-          codeql analyze codeql-db --format=sarif-latest --output=codeql-results.sarif
-
-      - name: Upload CodeQL results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: codeql-results.sarif
+          bandit -r .  # Recursively run Bandit on the Python code
 
   # Reusable workflow for scanning Docker image (this will only run if 'build' is selected)
   scan_image:
