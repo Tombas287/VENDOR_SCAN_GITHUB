@@ -54,6 +54,8 @@ def get_issue_and_update(repo_owner, repo_name):
             return None
 
         completed_tasks = []
+        issue_to_update = None  # Variable to hold the issue to be updated after task completion
+
         for issue in issues:
             issue_body = issue['body']  # Get the issue body
 
@@ -74,13 +76,14 @@ def get_issue_and_update(repo_owner, repo_name):
 
             else:
                 task_completed = completed_tasks[0]
-                return task_completed
+                issue_to_update = issue  # Save the issue to close later
+                return task_completed, issue_to_update
 
     else:
         print(f"Failed to fetch issues. Status Code: {response.status_code}")
         # Uncomment to debug
         # print(response.text)
-    return None
+    return None, None
 
 
 def execute_task(task_name, deployment):
@@ -120,6 +123,20 @@ def execute_task(task_name, deployment):
         print(f"Invalid task: {task_name}")
 
 
+def close_issue(issue_number):
+    """Close the GitHub issue by updating its state to 'closed'."""
+    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/{issue_number}"
+    data = {'state': 'closed'}
+    response = requests.patch(url, headers={"Authorization": f"token {GIT_TOKEN}"}, json=data)
+
+    if response.status_code == 200:
+        print(f"Issue #{issue_number} closed successfully.")
+    else:
+        print(f"Failed to close issue #{issue_number}. Status Code: {response.status_code}")
+        # Uncomment to debug
+        # print(response.text)
+
+
 # Main flow
 def main():
     # Fetch deployment names
@@ -129,13 +146,18 @@ def main():
         print("No deployments found.")
         return
 
-    # Fetch the task to perform from GitHub issues
-    task_name = get_issue_and_update(repo_owner, repo_name)
+    # Fetch the task to perform from GitHub issues and the issue to update
+    task_name, issue_to_update = get_issue_and_update(repo_owner, repo_name)
 
     if task_name:
         # Use the first deployment if available
         deployment = deployments[0]  # Select the first deployment
         execute_task(task_name, deployment)
+
+        # If an issue was fetched, close it after completing the task
+        if issue_to_update:
+            issue_number = issue_to_update['number']  # Get the issue number
+            close_issue(issue_number)
     else:
         print("No valid task found to perform.")
 
