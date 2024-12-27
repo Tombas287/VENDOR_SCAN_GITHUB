@@ -44,7 +44,7 @@ def task_to_perform(deployment):
 def get_issue_and_update(repo_owner, repo_name):
     """Fetch GitHub issues and determine the completed task."""
     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues"
-    response = requests.get(url, headers={"Authorization": f"token {GIT_TOKEN}", timeout=20})
+    response = requests.get(url, headers={"Authorization": f"token {GIT_TOKEN}"}, timeout=20)
 
     if response.status_code == 200:
         issues = response.json()
