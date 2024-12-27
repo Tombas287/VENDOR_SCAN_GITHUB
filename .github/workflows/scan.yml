@@ -31,8 +31,7 @@ jobs:
 
       - name: Scan Docker image with Trivy
         run: |
-          trivy image --exit-code 0 --no-progress ${{ inputs.docker_image }}:${{ inputs.docker_tag }} > trivy-report.json
-
+         trivy image --exit-code 0 --no-progress --format plain ${{ inputs.docker_image }}:${{ inputs.docker_tag }}
       - name: Upload Trivy report as an artifact
         uses: actions/upload-artifact@v3
         with:
