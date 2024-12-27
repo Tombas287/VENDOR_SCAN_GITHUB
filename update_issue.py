@@ -59,10 +59,6 @@ def get_issue_and_update(repo_owner, repo_name):
         for issue in issues:
             issue_body = issue['body']  # Get the issue body
 
-            if '- [] rollback' in issue_body or '- [] scale_down' in issue_body or '- [] scale_up' in issue_body:
-                print(f"Please select a task to proceed in issue: {issue['html_url']}")
-                return None, None
-
             # Store completed tasks in a list
             if '- [x] rollback' in issue_body:
                 completed_tasks.append('rollback')
@@ -79,9 +75,10 @@ def get_issue_and_update(repo_owner, repo_name):
                 print(f"Issue: {issue['html_url']}")
 
             else:
-                task_completed = completed_tasks[0]
-                issue_to_update = issue  # Save the issue to close later
-                return task_completed, issue_to_update
+                if len(completed_tasks) == 1:
+                    task_completed = completed_tasks[0]
+                    issue_to_update = issue  # Save the issue to close later
+                    return task_completed, issue_to_update
 
     else:
         print(f"Failed to fetch issues. Status Code: {response.status_code}")
