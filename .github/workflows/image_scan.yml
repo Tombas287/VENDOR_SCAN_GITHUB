@@ -27,7 +27,7 @@ on:
 jobs:
   # Reusable workflow for scanning
   scan_image:
-    if: ${{ github.event.inputs.run_build == 'true' }}  # Only run this job if run_build is true
+    if: ${{ github.event.inputs.run_build == 'build' }}  # Only run this job if run_build is true
     uses: ./.github/workflows/scan.yml  # Call the reusable scan.yml workflow
     with:
       docker_image: ${{ inputs.docker_image }}
@@ -68,8 +68,15 @@ jobs:
           docker tag ${{ inputs.docker_image }}:${{ inputs.docker_tag }} ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
 
+  aks_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Install scripts
-        if: ${{ github.event.inputs.run_deploy == 'true' }}  # Only run this step if run_deploy is true
+        if: ${{ github.event.inputs.run_deploy == 'run_deploy' }}  # Only run this step if run_deploy is true
         run: |
           chmod +x script.sh      
           ./script.sh 
