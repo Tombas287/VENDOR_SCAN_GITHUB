@@ -14,7 +14,7 @@ on:
         default: 'latest'
         type: string
       Multiple_choices:
-        description: 'Run build stage?'
+        description: 'Choose the stage to run'
         required: true
         default: 'build'
         type: choice
@@ -25,7 +25,7 @@ on:
 jobs:
   # Reusable workflow for scanning
   scan_image:
-    if: ${{ github.event.inputs.run_build == 'build' }}  # Only run this job if run_build is true
+    if: ${{ github.event.inputs.Multiple_choices == 'build' }}  # Only run this job if the choice is 'build'
     uses: ./.github/workflows/scan.yml  # Call the reusable scan.yml workflow
     with:
       docker_image: ${{ inputs.docker_image }}
@@ -36,7 +36,6 @@ jobs:
     permissions:
       contents: read
       issues: write
-      
     needs: scan_image  # This job depends on scan_image
     runs-on: ubuntu-latest
     if: success()  # Only run this job if scan_image is successful
@@ -68,7 +67,7 @@ jobs:
 
   # Job for deploying to AKS
   aks_deploy:
-    # Only run this job if run_deploy is true
+    if: ${{ github.event.inputs.Multiple_choices == 'deploy' }}  # Only run this job if the choice is 'deploy'
     runs-on: ubuntu-latest
 
     steps:
@@ -76,11 +75,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install scripts
-        if: ${{ github.event.inputs.run_deploy == 'deploy' }}
         run: |
           chmod +x script.sh      
           ./script.sh 
-
+          
       - name: Run Helm install with dynamic image repository
         run: |
           echo "Running Helm install with dynamic image repository"
@@ -129,7 +127,7 @@ jobs:
           curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/issues/9 \
-            | jq '.body'  # Get the updated body of issue #6 to verify changes
+            | jq '.body'  # Get the updated body of issue #9 to verify changes
 
       - name: kubectl commands
         run: |
