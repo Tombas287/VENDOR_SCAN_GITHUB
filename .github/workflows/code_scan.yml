@@ -1,0 +1,182 @@
+name: CI/CD pipeline for image scanning and code scanning
+
+on:
+  workflow_dispatch:
+    inputs:
+      docker_image:
+        description: 'Docker image to scan'
+        required: true
+        default: 'myapp'
+        type: string
+      docker_tag:
+        description: 'Docker image tag'
+        required: true
+        default: 'latest'
+        type: string
+      Multiple_choices:
+        description: 'Choose the stage to run'
+        required: true
+        default: 'build'
+        type: choice
+        options:
+          - build
+          - deploy
+
+jobs:
+  # Job for running code scanning (CodeQL)
+  code_scan:
+    if: ${{ github.event.inputs.Multiple_choices == 'build' }}  # Only run if 'build' is selected
+    runs-on: ubuntu-latest
+    name: Run CodeQL Analysis
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up CodeQL
+        uses: github/codeql-action/setup-codeql@v2
+        with:
+          languages: python  # or 'javascript', 'java', etc., depending on your codebase
+
+      - name: Initialize CodeQL database
+        run: |
+          codeql database create codeql-db --language=python  # or 'javascript', etc.
+
+      - name: Analyze the codebase with CodeQL
+        run: |
+          codeql analyze codeql-db --format=sarif-latest --output=codeql-results.sarif
+
+      - name: Upload CodeQL results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: codeql-results.sarif
+
+  # Reusable workflow for scanning Docker image (this will only run if 'build' is selected)
+  scan_image:
+    needs: code_scan
+    if: ${{ github.event.inputs.Multiple_choices == 'build' }}  # Only run this job if 'build' is selected
+    uses: ./.github/workflows/scan.yml  # Call the reusable scan.yml workflow
+    with:
+      docker_image: ${{ inputs.docker_image }}
+      docker_tag: ${{ inputs.docker_tag }}
+
+  # Job for pushing image after scan
+  image_push:
+    permissions:
+      contents: read
+      issues: write
+    needs: [scan_image, code_scan]  # This job depends on scan_image and code_scan
+    runs-on: ubuntu-latest
+    if: success() && ${{ github.event.inputs.Multiple_choices == 'build' }}  # Only run this job if 'build' is selected
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download Docker image tarball from artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.docker_image }}-${{ inputs.docker_tag }}-image  # Match the artifact name from scan.yml
+          path: ./  # Path to download the tarball to (directory, not file name)
+
+      - name: Load Docker image from tarball
+        run: |
+          docker load -i ./${{ inputs.docker_image }}-${{ inputs.docker_tag }}.tar  # Load the Docker image from the tarball
+
+      - name: Docker login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Tag and push Docker image
+        run: |
+          docker tag ${{ inputs.docker_image }}:${{ inputs.docker_tag }} ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:${{ inputs.docker_tag }}
+
+  # Job for deploying to AKS (this will run after image_push job if 'build' is selected, or run standalone if 'deploy' is selected)
+  aks_deploy:
+    runs-on: ubuntu-latest
+    needs: image_push  # Ensure it runs only after image_push if 'build' is selected
+    if: ${{ github.event.inputs.Multiple_choices == 'deploy' || (github.event.inputs.Multiple_choices == 'build' && success()) }}  # Runs for both 'build' (after image_push) and 'deploy' standalone
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install scripts
+        run: |
+          chmod +x script.sh      
+          ./script.sh 
+
+      - name: Run Helm install with dynamic image repository
+        run: |
+          echo "Running Helm install with dynamic image repository"
+          
+          # Corrected Helm install command with dynamic variables
+          helm install tommy myrelease \
+            --set image.repository="${DOCKER_USERNAME}/${{ inputs.docker_image }}" \
+            --set image.tag="${{ inputs.docker_tag }}"
+            
+          # Check the Kubernetes nodes and pods
+          kubectl get nodes
+          kubectl get pods
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_IMAGE: ${{ inputs.docker_image }}
+          DOCKER_TAG: ${{ inputs.docker_tag }}
+
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests  
+          pip install python-dotenv
+          pip install termcolor
+          pip install pyaml
+
+      - name: Create issue
+        run: | 
+          python3 issue.py 
+          sleep 60
+        env:
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+
+      - name: Install dependencies
+        run: |
+          python3 update_issue.py  
+        env:
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+
+      - name: Check if the issue was updated
+        run: |
+          # Fetch the latest issue from the repository (sorted by creation date)
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/${{ github.repository }}/issues?sort=created&direction=desc" \
+           | jq '.[0].body'  # Get the body of the most recent issue
+
+      - name: kubectl commands
+        run: |
+          kubectl get nodes 
+          kubectl get pods -o wide
+          kubectl get svc -o wide 
+
+      - name: Sleep for 5 minutes
+        run: sleep 120
+
+      - name: Check Quota
+        run: python3 quota.py
+
+      - name: Final kubectl commands
+        run: |
+          kubectl get pods -o wide
+          kubectl get svc -o wide
+
+      - name: Pod logs
+        run: |
+          chmod +x pods_logs.sh 
+          ./pods_logs.sh
