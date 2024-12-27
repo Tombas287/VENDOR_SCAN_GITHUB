@@ -149,6 +149,9 @@ def main():
 
     # Fetch the task to perform from GitHub issues and the issue to update
     task_name, issue_to_update = get_issue_and_update(repo_owner, repo_name)
+    if issue_to_update:
+        issue_number = issue_to_update['number']
+        close_issue(issue_number)
 
     if task_name:
         # Use the first deployment if available
@@ -159,9 +162,7 @@ def main():
         print("No valid task found to perform.")
         # Only attempt to close the issue if one was fetched
 
-    if issue_to_update:
-        issue_number = issue_to_update['number']
-        close_issue(issue_number)
+    
 
 
 # Run the script
