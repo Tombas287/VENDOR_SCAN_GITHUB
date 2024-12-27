@@ -13,7 +13,7 @@ GIT_TOKEN = os.getenv('GIT_TOKEN')
 def fetch_deployments():
     """Fetch the list of deployments using kubectl."""
     commands = 'kubectl get deployments -o jsonpath="{.items[*].metadata.name}"'
-    result = subprocess.run(commands, shell=True, check=True, stdout=subprocess.PIPE)
+    result = subprocess.run(commands, check=True, stdout=subprocess.PIPE)
     deployments = result.stdout.decode('utf-8').split()
     return deployments
 
@@ -21,7 +21,7 @@ def fetch_deployments():
 def get_current_replica_count(deployment):
     """Get the current replica count for a given deployment."""
     command = f"kubectl get deployment {deployment} -o=jsonpath='{{.spec.replicas}}'"
-    result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE)
+    result = subprocess.run(command, check=True, stdout=subprocess.PIPE)
     return int(result.stdout.decode('utf-8'))
 
 
@@ -44,7 +44,7 @@ def task_to_perform(deployment):
 def get_issue_and_update(repo_owner, repo_name):
     """Fetch GitHub issues and determine the completed task."""
     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues"
-    response = requests.get(url, headers={"Authorization": f"token {GIT_TOKEN}"})
+    response = requests.get(url, headers={"Authorization": f"token {GIT_TOKEN}", timeout=20})
 
     if response.status_code == 200:
         issues = response.json()
@@ -99,13 +99,13 @@ def execute_task(task_name, deployment):
                 print(f"Command: {command}")
                 # Check for the rollout history before attempting undo
                 rollout_history_check_command = f"kubectl rollout history deployment/{deployment} --revision=1"
-                history_result = subprocess.run(rollout_history_check_command, shell=True, stdout=subprocess.PIPE,
+                history_result = subprocess.run(rollout_history_check_command, stdout=subprocess.PIPE,
                                                 stderr=subprocess.PIPE)
 
                 if history_result.returncode != 0:
                     print(f"No rollout history found for deployment {deployment}. Skipping rollback.")
                 else:
-                    subprocess.run(command, shell=True, check=True)
+                    subprocess.run(command, check=True)
                     print(f"Task {task_name} completed successfully.")
             except subprocess.CalledProcessError as e:
                 print(f"Error executing the command: {e}")
