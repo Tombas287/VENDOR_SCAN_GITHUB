@@ -13,21 +13,19 @@ on:
         required: true
         default: 'latest'
         type: string
-      run_build:
+      Multiple_choices:
         description: 'Run build stage?'
         required: true
-        default: 'true'
-        type: boolean
-      run_deploy:
-        description: 'Run deploy stage?'
-        required: true
-        default: 'true'
-        type: boolean
+        default: 'build'
+        type: choice
+        options:
+          - build
+          - deploy      
 
 jobs:
   # Reusable workflow for scanning
   scan_image:
-    if: ${{ github.event.inputs.run_build == true }}  # Only run this job if run_build is true
+    if: ${{ github.event.inputs.run_build == 'build' }}  # Only run this job if run_build is true
     uses: ./.github/workflows/scan.yml  # Call the reusable scan.yml workflow
     with:
       docker_image: ${{ inputs.docker_image }}
@@ -70,7 +68,7 @@ jobs:
 
   # Job for deploying to AKS
   aks_deploy:
-    if: ${{ github.event.inputs.run_deploy == true }}  # Only run this job if run_deploy is true
+    # Only run this job if run_deploy is true
     runs-on: ubuntu-latest
 
     steps:
@@ -78,6 +76,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install scripts
+        if: ${{ github.event.inputs.run_deploy == 'deploy' }}
         run: |
           chmod +x script.sh      
           ./script.sh 
