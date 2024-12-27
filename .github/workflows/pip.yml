@@ -1,0 +1,50 @@
+name: CI/CD Workflow with Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Choose action to perform'
+        required: true
+        type: choice
+        options:
+          - build
+          - test
+          - deploy
+        default: build
+
+jobs:
+  ci_cd:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      # Step 2: Build Step (Runs only if "build" is selected)
+      - name: Build Project
+        if: ${{ github.event.inputs.action == 'build' }}
+        run: |
+          echo "Building the project..."
+          # Simulate build process
+          sleep 5  # Replace with actual build commands
+          echo "Build completed!"
+
+      # Step 3: Test Step (Runs if either "build" or "test" is selected)
+      - name: Test Project
+        if: ${{ github.event.inputs.action == 'test' }}
+        run: |
+          echo "Running tests..."
+          # Simulate testing process
+          sleep 5  # Replace with actual test commands
+          echo "Tests completed!"
+
+      # Step 4: Deploy Step (Runs if either "build" or "deploy" is selected)
+      - name: Deploy Project
+        if: ${{ github.event.inputs.action == 'deploy' }}
+        run: |
+          echo "Deploying the project..."
+          # Simulate deploy process
+          sleep 5  # Replace with actual deploy commands
+          echo "Deployment completed!"
