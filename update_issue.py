@@ -13,7 +13,7 @@ GIT_TOKEN = os.getenv('GIT_TOKEN')
 def fetch_deployments():
     """Fetch the list of deployments using kubectl."""
     commands = 'kubectl get deployments -o jsonpath="{.items[*].metadata.name}"'
-    result = subprocess.run(commands, check=True, stdout=subprocess.PIPE)
+    result = subprocess.run(commands, shell=True, check=True, stdout=subprocess.PIPE)
     deployments = result.stdout.decode('utf-8').split()
     return deployments
 
@@ -21,7 +21,7 @@ def fetch_deployments():
 def get_current_replica_count(deployment):
     """Get the current replica count for a given deployment."""
     command = f"kubectl get deployment {deployment} -o=jsonpath='{{.spec.replicas}}'"
-    result = subprocess.run(command, check=True, stdout=subprocess.PIPE)
+    result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE)
     return int(result.stdout.decode('utf-8'))
 
 
@@ -99,7 +99,7 @@ def execute_task(task_name, deployment):
                 print(f"Command: {command}")
                 # Check for the rollout history before attempting undo
                 rollout_history_check_command = f"kubectl rollout history deployment/{deployment} --revision=1"
-                history_result = subprocess.run(rollout_history_check_command, stdout=subprocess.PIPE,
+                history_result = subprocess.run(rollout_history_check_command, shell=True, stdout=subprocess.PIPE,
                                                 stderr=subprocess.PIPE)
 
                 if history_result.returncode != 0:
