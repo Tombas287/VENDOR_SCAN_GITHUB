@@ -25,7 +25,7 @@ on:
 jobs:
   # Reusable workflow for scanning
   scan_image:
-    if: ${{ github.event.inputs.Multiple_choices == 'build' }}  # Only run this job if the choice is 'build'
+    if: ${{ github.event.inputs.Multiple_choices == 'build' and github.event.inputs.Multiple_choices == 'build' }}  # Only run this job if the choice is 'build'
     uses: ./.github/workflows/scan.yml  # Call the reusable scan.yml workflow
     with:
       docker_image: ${{ inputs.docker_image }}
@@ -67,7 +67,7 @@ jobs:
 
   # Job for deploying to AKS
   aks_deploy:
-    if: ${{ github.event.inputs.Multiple_choices == 'deploy' || github.event.inputs.Multiple_choices == 'build'  }}  # Only run this job if the choice is 'deploy'
+    if: ${{ github.event.inputs.Multiple_choices == 'deploy'  }}  # Only run this job if the choice is 'deploy'
     runs-on: ubuntu-latest
 
     steps:
