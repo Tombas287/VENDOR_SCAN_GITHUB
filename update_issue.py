@@ -59,6 +59,10 @@ def get_issue_and_update(repo_owner, repo_name):
         for issue in issues:
             issue_body = issue['body']  # Get the issue body
 
+            if '- [] rollback' in issue_body or '- [] scale_down' in issue_body or '- [] scale_up' in issue_body:
+                print(f"Please select a task to proceed in issue: {issue['html_url']}")
+                return None, None
+
             # Store completed tasks in a list
             if '- [x] rollback' in issue_body:
                 completed_tasks.append('rollback')
