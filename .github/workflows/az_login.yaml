@@ -6,15 +6,13 @@ jobs:
   login:
     runs-on: ubuntu-latest
     steps:
-       - name: checkout
-         uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
         
-       - name: Run Azure CLI
-         uses: ./.github/actions/azure_login 
-         with:
-            azure-client-id: ${{ secrets.CLIENT_ID }}
-            azure-client-secret: ${{ secrets.CLIENT_SECRET }}
-            azure-tenant-id: ${{ secrets.TENANT_ID }} 
-            azure-subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-  
+      - name: Run Azure CLI
+        uses: ./.github/actions/azure_login
+        with:
+          azure-client-id: ${{ secrets.CLIENT_ID }}
+          azure-client-secret: ${{ secrets.CLIENT_SECRET }}
+          azure-tenant-id: ${{ secrets.TENANT_ID }}
+          azure-subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
