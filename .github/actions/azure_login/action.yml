@@ -2,33 +2,38 @@ name: 'Azure CLI Custom Action (Composite)'
 description: 'A custom GitHub Action to interact with Azure using Azure CLI commands'
 author: 'Maxwell'
 inputs:
-    azure-subscription-id:
-        description: 'Azure Subscription ID'
-        required: true
-    azure-client-id:
-        description: 'Azure Client ID (Service Principal)'
-        required: true
-    azure-client-secret:
-        description: 'Azure Client Secret (Service Principal)'
-        required: true
-    azure-tenant-id:
-        description: 'Azure Tenant ID'
-        required: true
+  azure-subscription-id:
+    description: 'Azure Subscription ID'
+    required: true
+  azure-client-id:
+    description: 'Azure Client ID (Service Principal)'
+    required: true
+  azure-client-secret:
+    description: 'Azure Client Secret (Service Principal)'
+    required: true
+  azure-tenant-id:
+    description: 'Azure Tenant ID'
+    required: true
 
-using: composite 
-steps:
+runs:
+  using: 'composite'
+  steps:
     - name: Set up Azure CLI
       run: |
         echo "Setting up Azure CLI"
         curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
       shell: bash 
+
     - name: Azure Login
       run: |
+        echo "Logging into Azure..."
         az login --service-principal -u ${{ inputs.azure-client-id }} -p ${{ inputs.azure-client-secret }} -t ${{ inputs.azure-tenant-id }}
       shell: bash
+      continue-on-error: false
 
     - name: Set Azure Subscription
       run: |
         echo "Setting Azure subscription..."
         az account set --subscription ${{ inputs.azure-subscription-id }}
-      shell: bash 
+      shell: bash
+      continue-on-error: false
