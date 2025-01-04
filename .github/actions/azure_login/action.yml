@@ -24,7 +24,7 @@ steps:
       shell: bash 
     - name: Azure Login
       run: |
-        az login --service-principal -u ${{ inputs.azure-client-id }} -p ${{ inputs.azure-client-secret}} -t ${{inputs.azure-tenant-id}}
+        az login --service-principal -u ${{ inputs.azure-client-id }} -p ${{ inputs.azure-client-secret }} -t ${{ inputs.azure-tenant-id }}
       shell: bash
 
     - name: Set Azure Subscription
