@@ -33,7 +33,7 @@ jobs:
         run: |
          trivy image --exit-code 0 --no-progress --format table ${{ inputs.docker_image }}:${{ inputs.docker_tag }}
       - name: Upload Trivy report as an artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
             name: trivy-report
             path: trivy-report.json
@@ -44,7 +44,7 @@ jobs:
 
       - name: Upload Docker image tarball as an artifact
         if: success()  # Only upload if the scan passes
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.docker_image }}-${{ inputs.docker_tag }}-image
           path: ${{ inputs.docker_image }}-${{ inputs.docker_tag }}.tar
