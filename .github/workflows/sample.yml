@@ -5,50 +5,51 @@ on:
 
 jobs:
   test-issue:
-    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
+    runs-on: self-hosted  # Use the latest Ubuntu runner
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Install scripts 
         run: |
-          chmod +x script.sh 
-          export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-          export DOCKER_IMAGE=${{ inputs.docker_image }}
-          ./script.sh 
+          echo "hello world"
+          # chmod +x script.sh 
+          # export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+          # export DOCKER_IMAGE=${{ inputs.docker_image }}
+          # ./script.sh 
 
       # - name: sample check
       #   run: sleep 15
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests  
-          pip install python-dotenv
-          pip install termcolor
-          pip install pyaml
-          # Run the Python script
-          python3 update_issue.py  
+      # - name: Install dependencies
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install requests  
+      #     pip install python-dotenv
+      #     pip install termcolor
+      #     pip install pyaml
+      #     # Run the Python script
+      #     python3 update_issue.py  
           
-        env:
-          GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO_OWNER: ${{ github.repository_owner }}      
-          REPO_NAME: ${{ github.event.repository.name  }}  
+      #   env:
+      #     GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     REPO_OWNER: ${{ github.repository_owner }}      
+      #     REPO_NAME: ${{ github.event.repository.name  }}  
           
-      - name: Check if the issue was updated
-        run: |
-          # Check the issue state or body update, you can add more tests here
-          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/issues/6 \
-            | jq '.body'  # Get the updated body of issue #6 to verify changes
+      # - name: Check if the issue was updated
+      #   run: |
+      #     # Check the issue state or body update, you can add more tests here
+      #     curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+      #       -H "Accept: application/vnd.github.v3+json" \
+      #       https://api.github.com/repos/${{ github.repository }}/issues/6 \
+      #       | jq '.body'  # Get the updated body of issue #6 to verify changes
 
-      - name: kubectl commands
-        run: |
-          kubectl get pods -o wide
-          kubectl get svc -o wide 
+      # - name: kubectl commands
+      #   run: |
+      #     kubectl get pods -o wide
+      #     kubectl get svc -o wide 
 
-      - name: Sleep for 120 
-        run: sleep 30
-      - name: check Quota 
-        run: python3 quota.py
+      # - name: Sleep for 120 
+      #   run: sleep 30
+      # - name: check Quota 
+      #   run: python3 quota.py
